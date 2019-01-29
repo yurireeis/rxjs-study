@@ -1,33 +1,30 @@
-// import * as $ from 'jquery';
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, interval, of, defer } from 'rxjs';
 
+// interval increments for each second
+// const source$ = interval(10).subscribe(
+//   value => console.log(value),
+//   err => console.log(err),
+//   () => console.log('completed')
+// );
 
-// hot & cold observable
-// cold observable = passive observable (created w/ subscription)
-// cold observable generates different values
+// if you want to limitate the counter, set take() function before subscribe
+// the second parameter of interval is the speed of iteration
+// const source2$ = of(45, 'Hello World', [1, 2, 3, 4, 5]).subscribe(
+//   value => console.log(value),
+//   err => console.log(err),
+//   () => console.log('completed')
+// );
 
-// hot observable = always running even outside of that observable (i.e: mousemove events)
-// hot observable is only set off once
+let i = 0;
 
-// publish operator = also known as connection operator
-const source$ = Observable.create((observer: Observer<Date>) => {
-  observer.next(new Date());
-  observer.complete();
+const source3$ = defer(() => {
+  return of(i++);
 });
 
-// so comes the connect function that turns that subscribe in a hot observable (emit always the same value)
-source$.connect();
-
-source$.subscribe(
-  (value: Date) => console.log(value),
-  (err: Error) => console.log(err),
-  () => console.log('completed')
-);
-
-setTimeout(() => {
-  source$.subscribe(
-    (value: Date) => console.log(value),
-    (err: Error) => console.log(err),
+for (let index = 0; index < 3; index++) {
+  source3$.subscribe(
+    value => console.log(value),
+    err => console.log(err),
     () => console.log('completed')
   );
-}, 2000);
+}
