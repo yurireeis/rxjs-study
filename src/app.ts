@@ -1,29 +1,31 @@
 import * as $ from 'jquery';
-import { Observable, from } from 'rxjs';
+import { interval, fromEvent, from, defer } from 'rxjs';
+import { map } from 'rxjs/operators';
 
+const input = $('#input');
+const length = $('#length');
+const userInfoButton = $('#user-info-button');
 
-// Promise: an object that can be available now or later on
-const myPromise = new Promise((resolve, reject) => {
-  console.log('creating promise');
-  setTimeout(() => {
-    console.log('something new is comming');
-    resolve('hello from promise!');
-  });
-});
+// map applies a function to each item that has been emitted
+interval(1000).pipe(map((v) => { v = v * 2 }));
 
-myPromise.then(x => {
-  console.log(x);
-});
+fromEvent(input, 'keyup')
+  .pipe(
+    map(event => (<HTMLInputElement>event.target).value)
+  )
+  .subscribe(
+    value => {
+      console.log(value);
+      length.text(value.length);
+    }
+  );
 
-from(getGithubUser('yurireeis')).subscribe(
-  value => console.log(value),
-  err => console.log(err),
-  () => console.log('completed!')
-);
-
-function getGithubUser(username: string) {
-  return $.ajax({
-    url: `https://api.github.com/users/${username}`,
-    dataType: 'jsonp'
-  }).promise();
+function getUserByUsername(username: string): Promise<any> {
+  return $.ajax({ url: `https://api.github.com/users/${username}`, dataType: 'jsonp' })
 }
+
+from(getUserByUsername('yurireeis')).pipe(
+  map((obj: any) => obj.data)
+).subscribe(
+  userInfo => { console.log(userInfo);
+});
