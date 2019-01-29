@@ -1,26 +1,60 @@
-import * as $ from 'jquery';
-import { fromEvent } from 'rxjs';
+// import * as $ from 'jquery';
+import { from } from 'rxjs';
 
-const input : JQuery<HTMLElement> = $('#input');
-const button: JQuery<HTMLElement> = $('#button');
+const nums = [33, 44, 55, 66, 77];
+const nums$ = from(nums);
 
 
-// dollar sign means stream variable
-const buttomStream$ = fromEvent(button, 'click');
-
-// above you can see the three emits from a stream
-// here we are subscribing to this stream
-// note that fromEvent events never falls in complete emit (third function)
-buttomStream$.subscribe(
+// observable from arrays
+nums$.subscribe(
   value => console.log(value),
   err => console.log(err),
-  () => console.log('complete')
+  () => console.log('completed')
 );
 
-const inputStream$ = fromEvent(input, 'keyup');
 
-inputStream$.subscribe(value => console.log(value));
+// observable from objects
+const users = [
+  { name: 'Yuri Reis', email: 'yuri.reis@training.com' },
+  { name: 'Reis Yuri', email: 'yuri.reis@training.com' },
+  { name: 'Luiz Silva', email: 'yuri.reis@training.com' },
+];
+const users$ = from(users);
 
-const mouseMove$ = fromEvent(document, 'mousemove').subscribe(value => {
-  console.log(value);
-});
+users$.subscribe(
+  value => console.log(value),
+  err => console.log(err),
+  () => console.log('completed')
+);
+
+
+// observable from sets
+const powers = new Set(['Fly', 100, 'neutral']);
+const powers$ = from(powers);
+
+powers$.subscribe(
+  value => console.log(value),
+  err => console.log(err),
+  () => console.log('completed')
+);
+
+// observable from map
+const pairOfNumbers = new Map([[1, 2], [3, 4], [5, 6]]);
+const pairOfNumbers$ = from(pairOfNumbers);
+
+pairOfNumbers$.subscribe(
+  value => console.log(value),
+  err => console.log(err),
+  () => console.log('completed')
+);
+
+
+// observable from string
+const name = 'yuri';
+const name$ = from(name);
+
+name$.subscribe(
+  value => console.log(value),
+  err => console.log(err),
+  () => console.log('completed')
+);
