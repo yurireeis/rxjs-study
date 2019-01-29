@@ -1,30 +1,29 @@
-import { Observable, Observer, interval, of, defer } from 'rxjs';
+import * as $ from 'jquery';
+import { Observable, from } from 'rxjs';
 
-// interval increments for each second
-// const source$ = interval(10).subscribe(
-//   value => console.log(value),
-//   err => console.log(err),
-//   () => console.log('completed')
-// );
 
-// if you want to limitate the counter, set take() function before subscribe
-// the second parameter of interval is the speed of iteration
-// const source2$ = of(45, 'Hello World', [1, 2, 3, 4, 5]).subscribe(
-//   value => console.log(value),
-//   err => console.log(err),
-//   () => console.log('completed')
-// );
-
-let i = 0;
-
-const source3$ = defer(() => {
-  return of(i++);
+// Promise: an object that can be available now or later on
+const myPromise = new Promise((resolve, reject) => {
+  console.log('creating promise');
+  setTimeout(() => {
+    console.log('something new is comming');
+    resolve('hello from promise!');
+  });
 });
 
-for (let index = 0; index < 3; index++) {
-  source3$.subscribe(
-    value => console.log(value),
-    err => console.log(err),
-    () => console.log('completed')
-  );
+myPromise.then(x => {
+  console.log(x);
+});
+
+from(getGithubUser('yurireeis')).subscribe(
+  value => console.log(value),
+  err => console.log(err),
+  () => console.log('completed!')
+);
+
+function getGithubUser(username: string) {
+  return $.ajax({
+    url: `https://api.github.com/users/${username}`,
+    dataType: 'jsonp'
+  }).promise();
 }
