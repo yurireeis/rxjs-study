@@ -1,22 +1,33 @@
 // import * as $ from 'jquery';
-import { Observable } from 'rxjs';
+import { Observable, Observer } from 'rxjs';
 
 
-// creating observables from scratch
-const source$ = new Observable(observer => {
-  console.log('creating observable...');
-  observer.next('a value');
-  observer.next('another value');
-  observer.error(new Error('Error: something is wrong'));
+// hot & cold observable
+// cold observable = passive observable (created w/ subscription)
+// cold observable generates different values
 
-  setTimeout(() => {
-    observer.next('hello world');
-    observer.complete();
-  }, 2000);
+// hot observable = always running even outside of that observable (i.e: mousemove events)
+// hot observable is only set off once
+
+// publish operator = also known as connection operator
+const source$ = Observable.create((observer: Observer<Date>) => {
+  observer.next(new Date());
+  observer.complete();
 });
 
+// so comes the connect function that turns that subscribe in a hot observable (emit always the same value)
+source$.connect();
+
 source$.subscribe(
-  (value) => { console.log(value); },
-  (err) => { console.log(err); },
-  () => { console.log('complete'); }
+  (value: Date) => console.log(value),
+  (err: Error) => console.log(err),
+  () => console.log('completed')
 );
+
+setTimeout(() => {
+  source$.subscribe(
+    (value: Date) => console.log(value),
+    (err: Error) => console.log(err),
+    () => console.log('completed')
+  );
+}, 2000);
