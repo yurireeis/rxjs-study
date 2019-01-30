@@ -1,44 +1,49 @@
 import * as $ from 'jquery';
-import { fromEvent, from } from 'rxjs';
+import { fromEvent, from, of, zip, interval, timer, combineLatest } from 'rxjs';
 import { map, distinct, debounceTime, withLatestFrom, tap, mergeMap, catchError } from 'rxjs/operators';
 
-const input = $('#input');
-const profile = $('#profile');
-const button = $('#button');
-profile.hide();
+const source1$ = of('first');
+const source2$ = of('second');
+const source3$ = of('third');
+const source4$ = of('fourth');
 
-function getGithubUser(username: string): Promise<any> {
-  return $.ajax({ url: `https://api.github.com/users/${username}` }).promise();
+function getSubscriber(_type: string) {
+  return {
+    next (value: any) { console.log(`success ${_type}`, value); },
+    error (err: any) { console.log('error: ', err); },
+    complete () { console.log('completed') },
+  }
 }
 
-function userNotFound(err: any) {
-  console.log('error flow');
-  profile.hide();
-}
+// using zip, when the first arbitrary observable ends, everyone stops too
+zip(
+  source1$,
+  source2$,
+  source3$,
+  source4$
+).subscribe(getSubscriber('zip'));
 
-function streamIsCompleted() {
-  console.log('complete flow');
-}
+// withLatestFrom works with following rule: when the observable defined in withLatestFrom ends, everyone combined with it ends too
+const interval1$ = interval(1000);
+const interval2$ = interval(5000);
 
-function userFound(user: any) {
-  console.log('success flow', user);
-  $('#name').text(user.name);
-  $('#login').text(user.login);
-  $('#blog').text(user.blog);
-  $('#avatar').attr('src',user.avatar_url);
-  $('#repos').text(user.public_repos);
-  $('#followers').text(user.followers);
-  $('#following').text(user.following);
-  $('#link').attr('href', user.html_url);
-  profile.show();
-}
+interval1$
+  .pipe(
+    withLatestFrom(interval2$)
+  ).subscribe(getSubscriber('withLatestFrom'));
 
-const inputHasSomeTextInputed = fromEvent(input, 'keyup').pipe(
-  debounceTime(1000),
-  map(event => (event.target as HTMLInputElement).value),
-  distinct(),
-  mergeMap((text) => getGithubUser(text))
-);
+const timer1$ = timer(1000, 3);
+const timer2$ = timer(1000, 10);
+const timer3$ = timer(1000, 5);
 
-inputHasSomeTextInputed.subscribe(userFound, userNotFound, streamIsCompleted);
-
+combineLatest(
+  timer1$,
+  timer2$,
+  timer3$
+).subscribe(([timer1, timer2, timer3]) => {
+  console.log(`
+    timer one latest: ${timer1},
+    timer two latest: ${timer2},
+    timer three latest: ${timer3},
+  `.toUpperCase());
+});
