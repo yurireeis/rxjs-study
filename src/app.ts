@@ -1,4 +1,4 @@
-import { of, merge, interval, timer, from } from 'rxjs';
+import { of, merge, interval, timer, from, Subject, BehaviorSubject, ReplaySubject } from 'rxjs';
 import { map, tap, defaultIfEmpty, every, mapTo, delay, delayWhen, timeInterval } from 'rxjs/operators';
 
 function getSubscriber(_type: string) {
@@ -9,64 +9,35 @@ function getSubscriber(_type: string) {
   };
 }
 
-// default if empty
-const source$ = of();
+// subject is a bridge between observer and observable
+const subject$ = new Subject();
 
-source$
-  .pipe(
-    defaultIfEmpty('my default value')
-  )
-  .subscribe(getSubscriber('defaultIfEmpty'));
+subject$.subscribe(getSubscriber('subject'));
 
-// every checks if all values emitted satisfies some condition
+subject$.next('hello');
+subject$.next('world');
 
-const source2$ = of(1, 2, 3);
+subject$.complete();
 
-source2$
-  .pipe(
-    every(value => value % 2 === 0)
-  )
-  .subscribe(getSubscriber('every'));
+const interval$ = interval(1000);
+const intervalSubject$ = new Subject();
 
-// do simply do something (don't emit values) (now is tap!)
+interval$.subscribe(intervalSubject$);
 
-const source3$ = of(1, 2, 3, 4)
+intervalSubject$.subscribe();
 
-source3$.pipe(
-  tap(value => console.log('BEFORE MAP: ' + value)),
-  map(value => value *2),
-  tap(value => console.log('AFTER MAP: ' + value))
-).subscribe(getSubscriber('tap/do'));
+// behaviour subject: starts with a initial value, and continous to emmit values by the source obsevable
+const behaviourSubject$ = new BehaviorSubject(45);
+
+behaviourSubject$.subscribe(getSubscriber('behaviour subject'));
+subject$.next(55);
+subject$.complete();
 
 
-// delay
-const source4$ = of(null);
-
-merge(
-  source4$.pipe(
-    mapTo('First')
-  ),
-  source4$.pipe(
-    delay(5000),
-    mapTo('Second')
-  ),
-  source4$.pipe(
-    mapTo('Third'),
-    delay(3000),
-  ),
-  source4$.pipe(
-    mapTo('Fourth'),
-    delay(5000),
-  )
-).subscribe(getSubscriber('delay'));
-
-
-// delayWhen
-const source5$ = interval(1000);
-
-
-source5$
-  .pipe(
-    delayWhen(() => timer(5000))
-  )
-  .subscribe(getSubscriber('delayWhen'));
+// replaySubject: same behaviour of behaviourSubject, but don't repeat values
+const replaySubject$ = new ReplaySubject(3);
+replaySubject$.next(1);
+replaySubject$.next(2);
+replaySubject$.next(3);
+replaySubject$.next(4);
+replaySubject$.subscribe(getSubscriber('replay subject'));
