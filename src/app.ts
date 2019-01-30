@@ -1,28 +1,44 @@
-import { of, interval, merge, from, concat, fromEvent } from 'rxjs';
-import { mergeMap  } from 'rxjs/operators';
+import * as $ from 'jquery';
+import { fromEvent, from } from 'rxjs';
+import { map, distinct, debounceTime, withLatestFrom, tap, mergeMap, catchError } from 'rxjs/operators';
 
-// using mergeMap to use the result of a promise in another promise
-of('hello')
-  .pipe(
-    mergeMap(v => of(`${v} world`))
-  )
-  .subscribe(value => console.log(value));
+const input = $('#input');
+const profile = $('#profile');
+const button = $('#button');
+profile.hide();
 
-// a better example using a promise
-const myPromise = function (v: any) {
-  return new Promise((resolve, reject) => {
-    resolve(`${v} world from promise`);
-  })
+function getGithubUser(username: string): Promise<any> {
+  return $.ajax({ url: `https://api.github.com/users/${username}` }).promise();
 }
 
-of('hello')
-  .pipe(
-    mergeMap(v => myPromise(v))
-  )
-  .subscribe(value => console.log(value));
+function userNotFound(err: any) {
+  console.log('error flow');
+  profile.hide();
+}
 
+function streamIsCompleted() {
+  console.log('complete flow');
+}
 
-  const button = $('#button');
+function userFound(user: any) {
+  console.log('success flow', user);
+  $('#name').text(user.name);
+  $('#login').text(user.login);
+  $('#blog').text(user.blog);
+  $('#avatar').attr('src',user.avatar_url);
+  $('#repos').text(user.public_repos);
+  $('#followers').text(user.followers);
+  $('#following').text(user.following);
+  $('#link').attr('href', user.html_url);
+  profile.show();
+}
 
-  fromEvent(button, 'click')
-    .subscribe(value => { console.log(value); });
+const inputHasSomeTextInputed = fromEvent(input, 'keyup').pipe(
+  debounceTime(1000),
+  map(event => (event.target as HTMLInputElement).value),
+  distinct(),
+  mergeMap((text) => getGithubUser(text))
+);
+
+inputHasSomeTextInputed.subscribe(userFound, userNotFound, streamIsCompleted);
+
